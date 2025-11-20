@@ -1,0 +1,110 @@
+{
+  "linkedServices": [
+    {
+      "name": "LinkedServiceBlobStorage",
+      "properties": {
+        "description": "Linked service to Azure Blob Storage using managed identity",
+        "annotations": [
+          "storage",
+          "adls-gen2"
+        ],
+        "type": "AzureBlobStorage",
+        "typeProperties": {
+          "serviceEndpoint": "https://<storage-account-name>.blob.core.usgovcloudapi.net",
+          "accountKind": "StorageV2",
+          "authenticationType": "ManagedIdentity"
+        },
+        "connectVia": {
+          "referenceName": "AutoResolveIntegrationRuntime",
+          "type": "IntegrationRuntimeReference"
+        }
+      },
+      "type": "Microsoft.DataFactory/factories/linkedservices"
+    },
+    {
+      "name": "LinkedServiceDatabricks",
+      "properties": {
+        "description": "Linked service to Azure Databricks using managed identity",
+        "annotations": [
+          "databricks",
+          "spark"
+        ],
+        "type": "AzureDatabricks",
+        "typeProperties": {
+          "domain": "https://<databricks-workspace-url>",
+          "authentication": "MSI",
+          "workspaceResourceId": "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Databricks/workspaces/<workspace-name>",
+          "newClusterNodeType": "Standard_DS3_v2",
+          "newClusterNumOfWorker": "1:4",
+          "newClusterSparkEnvVars": {
+            "PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+          },
+          "newClusterVersion": "13.3.x-scala2.12",
+          "newClusterInitScripts": [],
+          "clusterOption": "Fixed",
+          "newClusterDriverNodeType": "Standard_DS3_v2"
+        },
+        "connectVia": {
+          "referenceName": "AutoResolveIntegrationRuntime",
+          "type": "IntegrationRuntimeReference"
+        }
+      },
+      "type": "Microsoft.DataFactory/factories/linkedservices"
+    },
+    {
+      "name": "LinkedServiceKeyVault",
+      "properties": {
+        "description": "Linked service to Azure Key Vault for secrets",
+        "annotations": [
+          "keyvault",
+          "secrets"
+        ],
+        "type": "AzureKeyVault",
+        "typeProperties": {
+          "baseUrl": "https://<keyvault-name>.vault.usgovcloudapi.net/"
+        }
+      },
+      "type": "Microsoft.DataFactory/factories/linkedservices"
+    },
+    {
+      "name": "LinkedServiceSynapse",
+      "properties": {
+        "description": "Linked service to Azure Synapse Analytics",
+        "annotations": [
+          "synapse",
+          "sql"
+        ],
+        "type": "AzureSqlDW",
+        "typeProperties": {
+          "connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=<synapse-workspace>.sql.azuresynapse.usgovcloudapi.net;Initial Catalog=CustomerAnalytics",
+          "authenticationType": "ManagedIdentity"
+        },
+        "connectVia": {
+          "referenceName": "AutoResolveIntegrationRuntime",
+          "type": "IntegrationRuntimeReference"
+        }
+      },
+      "type": "Microsoft.DataFactory/factories/linkedservices"
+    }
+  ],
+  "integrationRuntimes": [
+    {
+      "name": "AutoResolveIntegrationRuntime",
+      "properties": {
+        "type": "Managed",
+        "typeProperties": {
+          "computeProperties": {
+            "location": "usgovvirginia",
+            "dataFlowProperties": {
+              "computeType": "General",
+              "coreCount": 8,
+              "timeToLive": 10,
+              "cleanup": true
+            }
+          }
+        }
+      },
+      "type": "Microsoft.DataFactory/factories/integrationruntimes"
+    }
+  ]
+}

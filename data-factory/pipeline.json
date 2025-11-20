@@ -1,0 +1,206 @@
+{
+  "name": "CustomerAnalyticsPipeline",
+  "properties": {
+    "description": "End-to-end customer analytics data pipeline with Bronze -> Silver -> Gold transformations",
+    "activities": [
+      {
+        "name": "CheckNewFiles",
+        "description": "Check if new files exist in Bronze container",
+        "type": "GetMetadata",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "userProperties": [],
+        "typeProperties": {
+          "dataset": {
+            "referenceName": "BronzeTransactionsCsv",
+            "type": "DatasetReference"
+          },
+          "fieldList": [
+            "exists",
+            "lastModified",
+            "itemName"
+          ],
+          "storeSettings": {
+            "type": "AzureBlobStorageReadSettings",
+            "recursive": true,
+            "enablePartitionDiscovery": false
+          },
+          "formatSettings": {
+            "type": "DelimitedTextReadSettings"
+          }
+        }
+      },
+      {
+        "name": "TransformBronzeToSilver",
+        "description": "Databricks notebook to clean and validate data",
+        "type": "DatabricksNotebook",
+        "dependsOn": [
+          {
+            "activity": "CheckNewFiles",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "userProperties": [],
+        "typeProperties": {
+          "notebookPath": "/Shared/pipelines/bronze_to_silver",
+          "baseParameters": {
+            "storage_account": {
+              "value": "@pipeline().parameters.storageAccountName",
+              "type": "Expression"
+            },
+            "source_container": {
+              "value": "bronze",
+              "type": "Expression"
+            },
+            "target_container": {
+              "value": "silver",
+              "type": "Expression"
+            },
+            "source_path": {
+              "value": "transactions",
+              "type": "Expression"
+            }
+          }
+        },
+        "linkedServiceName": {
+          "referenceName": "LinkedServiceDatabricks",
+          "type": "LinkedServiceReference"
+        }
+      },
+      {
+        "name": "TransformSilverToGold",
+        "description": "Databricks notebook to create business aggregations",
+        "type": "DatabricksNotebook",
+        "dependsOn": [
+          {
+            "activity": "TransformBronzeToSilver",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "userProperties": [],
+        "typeProperties": {
+          "notebookPath": "/Shared/pipelines/silver_to_gold",
+          "baseParameters": {
+            "storage_account": {
+              "value": "@pipeline().parameters.storageAccountName",
+              "type": "Expression"
+            },
+            "source_container": {
+              "value": "silver",
+              "type": "Expression"
+            },
+            "target_container": {
+              "value": "gold",
+              "type": "Expression"
+            },
+            "source_path": {
+              "value": "transactions",
+              "type": "Expression"
+            }
+          }
+        },
+        "linkedServiceName": {
+          "referenceName": "LinkedServiceDatabricks",
+          "type": "LinkedServiceReference"
+        }
+      },
+      {
+        "name": "LogPipelineSuccess",
+        "description": "Log successful pipeline execution",
+        "type": "SetVariable",
+        "dependsOn": [
+          {
+            "activity": "TransformSilverToGold",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "userProperties": [],
+        "typeProperties": {
+          "variableName": "pipelineStatus",
+          "value": "SUCCESS"
+        }
+      },
+      {
+        "name": "LogPipelineFailure",
+        "description": "Log pipeline failure",
+        "type": "SetVariable",
+        "dependsOn": [
+          {
+            "activity": "TransformBronzeToSilver",
+            "dependencyConditions": [
+              "Failed"
+            ]
+          },
+          {
+            "activity": "TransformSilverToGold",
+            "dependencyConditions": [
+              "Failed"
+            ]
+          }
+        ],
+        "policy": {
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "userProperties": [],
+        "typeProperties": {
+          "variableName": "pipelineStatus",
+          "value": "FAILED"
+        }
+      }
+    ],
+    "parameters": {
+      "storageAccountName": {
+        "type": "string",
+        "defaultValue": "customersadev123456"
+      },
+      "pipelineRunDate": {
+        "type": "string",
+        "defaultValue": "@formatDateTime(utcnow(), 'yyyy-MM-dd')"
+      }
+    },
+    "variables": {
+      "pipelineStatus": {
+        "type": "String",
+        "defaultValue": "RUNNING"
+      }
+    },
+    "annotations": [
+      "CustomerAnalytics",
+      "DataPipeline",
+      "Medallion"
+    ],
+    "lastPublishTime": "2025-01-19T00:00:00Z"
+  },
+  "type": "Microsoft.DataFactory/factories/pipelines"
+}

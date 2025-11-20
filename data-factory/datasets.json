@@ -1,0 +1,278 @@
+{
+  "datasets": [
+    {
+      "name": "BronzeTransactionsCsv",
+      "properties": {
+        "description": "CSV files in Bronze container (raw transaction data)",
+        "linkedServiceName": {
+          "referenceName": "LinkedServiceBlobStorage",
+          "type": "LinkedServiceReference"
+        },
+        "annotations": [
+          "bronze",
+          "raw",
+          "csv"
+        ],
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobStorageLocation",
+            "fileName": "*.csv",
+            "folderPath": "transactions",
+            "container": "bronze"
+          },
+          "columnDelimiter": ",",
+          "rowDelimiter": "\n",
+          "escapeChar": "\\",
+          "quoteChar": "\"",
+          "firstRowAsHeader": true,
+          "compressionCodec": "none"
+        },
+        "schema": [
+          {
+            "name": "transaction_id",
+            "type": "String"
+          },
+          {
+            "name": "customer_id",
+            "type": "String"
+          },
+          {
+            "name": "transaction_date",
+            "type": "String"
+          },
+          {
+            "name": "amount",
+            "type": "String"
+          },
+          {
+            "name": "product_category",
+            "type": "String"
+          },
+          {
+            "name": "payment_method",
+            "type": "String"
+          },
+          {
+            "name": "store_location",
+            "type": "String"
+          },
+          {
+            "name": "quantity",
+            "type": "String"
+          }
+        ]
+      },
+      "type": "Microsoft.DataFactory/factories/datasets"
+    },
+    {
+      "name": "SilverTransactionsParquet",
+      "properties": {
+        "description": "Parquet files in Silver container (cleaned and validated data)",
+        "linkedServiceName": {
+          "referenceName": "LinkedServiceBlobStorage",
+          "type": "LinkedServiceReference"
+        },
+        "annotations": [
+          "silver",
+          "cleaned",
+          "parquet"
+        ],
+        "type": "Parquet",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobStorageLocation",
+            "folderPath": "transactions",
+            "container": "silver"
+          },
+          "compressionCodec": "snappy"
+        },
+        "schema": [
+          {
+            "name": "transaction_id",
+            "type": "UTF8"
+          },
+          {
+            "name": "customer_id",
+            "type": "UTF8"
+          },
+          {
+            "name": "transaction_date",
+            "type": "DATE"
+          },
+          {
+            "name": "amount",
+            "type": "DECIMAL",
+            "precision": 10,
+            "scale": 2
+          },
+          {
+            "name": "product_category",
+            "type": "UTF8"
+          },
+          {
+            "name": "payment_method",
+            "type": "UTF8"
+          },
+          {
+            "name": "store_location",
+            "type": "UTF8"
+          },
+          {
+            "name": "quantity",
+            "type": "INT32"
+          },
+          {
+            "name": "ingestion_timestamp",
+            "type": "TIMESTAMP_MICROS"
+          },
+          {
+            "name": "is_valid",
+            "type": "BOOLEAN"
+          }
+        ]
+      },
+      "type": "Microsoft.DataFactory/factories/datasets"
+    },
+    {
+      "name": "GoldDailySalesDelta",
+      "properties": {
+        "description": "Delta table for daily sales summary (business-ready aggregated data)",
+        "linkedServiceName": {
+          "referenceName": "LinkedServiceBlobStorage",
+          "type": "LinkedServiceReference"
+        },
+        "annotations": [
+          "gold",
+          "aggregated",
+          "delta"
+        ],
+        "type": "Parquet",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobStorageLocation",
+            "folderPath": "daily_sales_summary",
+            "container": "gold"
+          },
+          "compressionCodec": "snappy"
+        },
+        "schema": [
+          {
+            "name": "transaction_date",
+            "type": "DATE"
+          },
+          {
+            "name": "total_transactions",
+            "type": "INT64"
+          },
+          {
+            "name": "total_revenue",
+            "type": "DECIMAL",
+            "precision": 18,
+            "scale": 2
+          },
+          {
+            "name": "avg_transaction_value",
+            "type": "DECIMAL",
+            "precision": 18,
+            "scale": 2
+          },
+          {
+            "name": "unique_customers",
+            "type": "INT64"
+          },
+          {
+            "name": "total_items_sold",
+            "type": "INT64"
+          },
+          {
+            "name": "revenue_per_customer",
+            "type": "DECIMAL",
+            "precision": 18,
+            "scale": 2
+          },
+          {
+            "name": "load_timestamp",
+            "type": "TIMESTAMP_MICROS"
+          }
+        ]
+      },
+      "type": "Microsoft.DataFactory/factories/datasets"
+    },
+    {
+      "name": "GoldCustomerSegmentationDelta",
+      "properties": {
+        "description": "Delta table for customer segmentation (business-ready customer metrics)",
+        "linkedServiceName": {
+          "referenceName": "LinkedServiceBlobStorage",
+          "type": "LinkedServiceReference"
+        },
+        "annotations": [
+          "gold",
+          "customers",
+          "delta"
+        ],
+        "type": "Parquet",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobStorageLocation",
+            "folderPath": "customer_segmentation",
+            "container": "gold"
+          },
+          "compressionCodec": "snappy"
+        },
+        "schema": [
+          {
+            "name": "customer_id",
+            "type": "UTF8"
+          },
+          {
+            "name": "total_transactions",
+            "type": "INT64"
+          },
+          {
+            "name": "total_spent",
+            "type": "DECIMAL",
+            "precision": 18,
+            "scale": 2
+          },
+          {
+            "name": "avg_transaction_value",
+            "type": "DECIMAL",
+            "precision": 18,
+            "scale": 2
+          },
+          {
+            "name": "last_transaction_date",
+            "type": "DATE"
+          },
+          {
+            "name": "first_transaction_date",
+            "type": "DATE"
+          },
+          {
+            "name": "customer_segment",
+            "type": "UTF8"
+          },
+          {
+            "name": "frequency_segment",
+            "type": "UTF8"
+          },
+          {
+            "name": "days_since_last_transaction",
+            "type": "INT32"
+          },
+          {
+            "name": "customer_lifetime_days",
+            "type": "INT32"
+          },
+          {
+            "name": "load_timestamp",
+            "type": "TIMESTAMP_MICROS"
+          }
+        ]
+      },
+      "type": "Microsoft.DataFactory/factories/datasets"
+    }
+  ]
+}

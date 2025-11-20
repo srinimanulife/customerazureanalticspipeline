@@ -1,0 +1,111 @@
+# Terraform files
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.tfvars
+!terraform.tfvars.example
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Databricks
+.databricks/
+*.egg-info/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg
+
+# Python
+venv/
+ENV/
+env/
+.venv
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Azure
+.azure/
+*.publishsettings
+
+# Secrets and credentials
+*.pem
+*.key
+*.cert
+*.pfx
+*.p12
+secrets/
+credentials/
+*.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+.tmp/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Data files (large files should not be in Git)
+*.csv
+*.parquet
+*.json
+*.avro
+*.orc
+!sample-data/*.csv
+!data-factory/*.json
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Documentation build artifacts
+site/
+docs/_build/
+
+# Local test outputs
+test-output/
+test-results/
+
+# CI/CD temporary files
+.github/workflows/*.tmp
