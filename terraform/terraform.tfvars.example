@@ -1,0 +1,34 @@
+# Example Terraform variables file
+# Copy this file to terraform.tfvars and update with your values
+
+# Project Configuration
+project_name = "customer-analytics"
+environment  = "dev"
+location     = "East US"
+
+# Tags
+tags = {
+  Department = "Data Engineering"
+  CostCenter = "Analytics"
+  Owner      = "Data Team"
+}
+
+# AAD Groups
+aad_group_data_engineers = "data-engineers"
+aad_group_data_analysts  = "data-analysts"
+aad_group_admins         = "data-platform-admins"
+
+# Storage Configuration
+storage_account_tier     = "Standard"
+storage_replication_type = "LRS" # Use GRS or GZRS for production
+
+# Databricks Configuration
+databricks_sku             = "premium"
+databricks_cluster_version = "13.3.x-scala2.12"
+
+# Synapse Configuration
+synapse_sql_admin_username = "sqladmin"
+synapse_sql_admin_password = "ChangeMe123!@#" # Use strong password and store in Key Vault
+
+# Data Factory Configuration
+adf_git_integration = false # Set to true to enable Git integration

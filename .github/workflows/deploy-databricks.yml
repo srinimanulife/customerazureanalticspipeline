@@ -1,0 +1,81 @@
+name: Deploy Databricks Notebooks
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'databricks/**'
+
+  workflow_dispatch:
+
+env:
+  DATABRICKS_NOTEBOOK_PATH: '/Shared/pipelines'
+
+jobs:
+  deploy-notebooks:
+    name: 'Deploy Databricks Notebooks'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install Databricks CLI
+        run: |
+          pip install databricks-cli
+
+      - name: Configure Databricks CLI
+        run: |
+          echo "${{ secrets.DATABRICKS_HOST }}" > ~/.databricks-host
+          echo "${{ secrets.DATABRICKS_TOKEN }}" > ~/.databricks-token
+
+          databricks configure --token <<EOF
+          ${{ secrets.DATABRICKS_HOST }}
+          ${{ secrets.DATABRICKS_TOKEN }}
+          EOF
+
+      - name: Create Notebook Directory
+        run: |
+          databricks workspace mkdirs ${{ env.DATABRICKS_NOTEBOOK_PATH }} || true
+
+      - name: Deploy Bronze to Silver Notebook
+        run: |
+          databricks workspace import \
+            --language PYTHON \
+            --format SOURCE \
+            --overwrite \
+            databricks/notebooks/bronze_to_silver.py \
+            ${{ env.DATABRICKS_NOTEBOOK_PATH }}/bronze_to_silver
+
+      - name: Deploy Silver to Gold Notebook
+        run: |
+          databricks workspace import \
+            --language PYTHON \
+            --format SOURCE \
+            --overwrite \
+            databricks/notebooks/silver_to_gold.py \
+            ${{ env.DATABRICKS_NOTEBOOK_PATH }}/silver_to_gold
+
+      - name: List Deployed Notebooks
+        run: |
+          echo "Successfully deployed notebooks:"
+          databricks workspace ls ${{ env.DATABRICKS_NOTEBOOK_PATH }}
+
+      - name: Create Deployment Summary
+        run: |
+          echo "## Databricks Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Successfully deployed notebooks to: \`${{ env.DATABRICKS_NOTEBOOK_PATH }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployed Notebooks:" >> $GITHUB_STEP_SUMMARY
+          echo "- bronze_to_silver.py" >> $GITHUB_STEP_SUMMARY
+          echo "- silver_to_gold.py" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Databricks Workspace**: ${{ secrets.DATABRICKS_HOST }}" >> $GITHUB_STEP_SUMMARY
